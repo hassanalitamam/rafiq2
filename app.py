@@ -60,7 +60,7 @@ def configure_gemini_model(api_key):
       system_prompt = """أنت مساعد طبي محترف يقدم تحليلات دقيقة وواضحة للبيانات الصحية."""
 
       model = genai.GenerativeModel(
-          model_name="gemini-1.5-flash",
+          model_name="gemini-1.5-pro",
           generation_config=generation_config,
           system_instruction=system_prompt
       )
@@ -120,8 +120,8 @@ def generate_pdf_report(analysis_text):
   """إنشاء تقرير PDF"""
   pdf = FPDF()
   pdf.add_page()
-  pdf.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
-  pdf.set_font('DejaVu', '', 14)
+  pdf.add_font('Amiri', '', 'Amiri-Regular.ttf', uni=True)
+  pdf.set_font('Amiri', '', 14)
   pdf.multi_cell(0, 10, analysis_text)
   pdf_file = "medical_report.pdf"
   pdf.output(pdf_file)
@@ -232,7 +232,7 @@ def main():
       # التحليل الطبي
       if generate_report:
           st.subheader("التحليل الطبي AI")
-          with st.spinner("جاري انشاء التقرير..."):
+          with st.spinner("جاري التحليل..."):
               medical_analysis = analyze_medical_data(model, latest_entry)
 
           # تنسيق التحليل
@@ -264,7 +264,7 @@ def main():
 
       # عرض البيانات الخام
       if show_raw_data:
-          st.subheader("البيانات ")
+          st.subheader("البيانات الخام")
           st.dataframe(st.session_state.processed_df)
 
   else:
