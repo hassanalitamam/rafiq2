@@ -18,7 +18,7 @@ st.set_page_config(
 
 THINGSPEAK_CHANNEL_ID = 2743941
 THINGSPEAK_API_KEY = "2BBOKAZ1XELK87Q9"
-GEMINI_API_KEY = "AIzaSyDNImWk22G1v6hTJT8gNpbjeNa3oHpS6Ds"
+GEMINI_API_KEY = "AIzaSyB_8fZhuc_-tVrY7_1PTJPtqTQBtgmOxbc"
 
 # دالة جلب رسوم Lottie
 def load_lottie_url(url: str):
@@ -121,6 +121,8 @@ def generate_pdf_report(analysis_text):
   pdf = FPDF()
   pdf.add_page()
   pdf.set_font("Arial", size=12)
+  pdf.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
+  pdf.set_font('DejaVu', '', 14)
   pdf.multi_cell(0, 10, analysis_text)
   pdf_file = "medical_report.pdf"
   pdf.output(pdf_file)
