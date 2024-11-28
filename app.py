@@ -60,7 +60,7 @@ def configure_gemini_model(api_key):
       system_prompt = """أنت مساعد طبي محترف يقدم تحليلات دقيقة وواضحة للبيانات الصحية."""
 
       model = genai.GenerativeModel(
-          model_name="gemini-1.5-flash-8b",
+          model_name="gemini-1.5-pro",
           generation_config=generation_config,
           system_instruction=system_prompt
       )
@@ -120,7 +120,6 @@ def generate_pdf_report(analysis_text):
   """إنشاء تقرير PDF"""
   pdf = FPDF()
   pdf.add_page()
-  pdf.set_font("Arial", size=12)
   pdf.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
   pdf.set_font('DejaVu', '', 14)
   pdf.multi_cell(0, 10, analysis_text)
@@ -142,6 +141,20 @@ def main():
       color: #2c3e50;
       text-align: center;
       margin-bottom: 20px;
+  }
+  .metric-container {
+      background-color: #e8f4f8;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      margin-bottom: 10px;
+  }
+  .analysis-container {
+      background-color: #f0f8ff;
+      border-radius: 10px;
+      padding: 20px;
+      direction: rtl;
+      margin-top: 20px;
   }
   </style>
   """, unsafe_allow_html=True)
@@ -224,7 +237,7 @@ def main():
 
           # تنسيق التحليل
           st.markdown(f"""
-          <div style="background-color: #f0f8ff; border-radius: 10px; padding: 20px; direction: rtl;">
+          <div class="analysis-container">
           {medical_analysis}
           </div>
           """, unsafe_allow_html=True)
