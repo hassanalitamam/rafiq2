@@ -1,7 +1,8 @@
 streamlit
-google-generativeai
 requests
 pandas
 plotly
+fpdf
+google-generativeai
 streamlit-extras
 streamlit-lottie
