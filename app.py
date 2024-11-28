@@ -18,7 +18,7 @@ st.set_page_config(
 
 THINGSPEAK_CHANNEL_ID = 2743941
 THINGSPEAK_API_KEY = "2BBOKAZ1XELK87Q9"
-GEMINI_API_KEY = "AIzaSyB_8fZhuc_-tVrY7_1PTJPtqTQBtgmOxbc"
+GEMINI_API_KEY = "AIzaSyDtAObnL5hUJXgLyPXxBUUhnGFKLW6wj14"
 
 # دالة جلب رسوم Lottie
 def load_lottie_url(url: str):
