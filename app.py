@@ -10,13 +10,12 @@ from streamlit_lottie import st_lottie
 
 # إعدادات الأمان والتكوين
 st.set_page_config(
-    page_title="نظام مراقبة الصحة الذكي",
+    page_title=" RAFIQ AI نظام مراقبة الصحة الذكي",
     page_icon="❤️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# مفاتيح API (يُنصح بتخزينها في متغيرات بيئية آمنة)
 THINGSPEAK_CHANNEL_ID = 2743941
 THINGSPEAK_API_KEY = "2BBOKAZ1XELK87Q9"
 GEMINI_API_KEY = "AIzaSyB_8fZhuc_-tVrY7_1PTJPtqTQBtgmOxbc"
@@ -32,7 +31,6 @@ def load_lottie_url(url: str):
         st.error(f"خطأ في تحميل الرسوم المتحركة: {e}")
         return None
 
-# دوال معالجة البيانات
 def fetch_thingspeak_data(channel_id, api_key, results=100):
     """جلب البيانات من قناة ThingSpeak مع التحسينات"""
     url = f"https://api.thingspeak.com/channels/{channel_id}/feeds.json?api_key={api_key}&results={results}"
@@ -152,9 +150,8 @@ def main():
         st.header("قائمة التحكم")
         st.markdown("---")
         refresh_data = st.button("🔄 تحديث البيانات", use_container_width=True)
-        show_raw_data = st.checkbox("📊 عرض البيانات الخام")
+        show_raw_data = st.checkbox("📊 عرض البيانات للمريض")
         
-    # المحتوى الرئيسي
     if refresh_data or 'thingspeak_data' not in st.session_state:
         # جلب بيانات ThingSpeak
         thingspeak_data = fetch_thingspeak_data(THINGSPEAK_CHANNEL_ID, THINGSPEAK_API_KEY)
@@ -175,7 +172,6 @@ def main():
             
             st.session_state.processed_df = df
 
-    # عرض البيانات والتحليل
     if 'thingspeak_data' in st.session_state:
         # أحدث إدخال
         latest_entry = st.session_state.thingspeak_data['feeds'][-1]
@@ -237,7 +233,6 @@ def main():
     else:
         st.warning("الرجاء الضغط على زر تحديث البيانات")
 
-# المتطلبات الإضافية
 st.markdown("""
 <style>
 [data-testid="stHeader"] {
