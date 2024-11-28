@@ -60,7 +60,7 @@ def configure_gemini_model(api_key):
       system_prompt = """أنت مساعد طبي محترف يقدم تحليلات دقيقة وواضحة للبيانات الصحية."""
 
       model = genai.GenerativeModel(
-          model_name="gemini-1.5-pro",
+          model_name="gemini-1.5-flash",
           generation_config=generation_config,
           system_instruction=system_prompt
       )
@@ -232,7 +232,7 @@ def main():
       # التحليل الطبي
       if generate_report:
           st.subheader("التحليل الطبي AI")
-          with st.spinner("جاري التحليل..."):
+          with st.spinner("جاري انشاء التقرير..."):
               medical_analysis = analyze_medical_data(model, latest_entry)
 
           # تنسيق التحليل
@@ -264,7 +264,7 @@ def main():
 
       # عرض البيانات الخام
       if show_raw_data:
-          st.subheader("البيانات الخام")
+          st.subheader("البيانات ")
           st.dataframe(st.session_state.processed_df)
 
   else:
