@@ -60,7 +60,7 @@ def configure_gemini_model(api_key):
       system_prompt = """أنت مساعد طبي محترف يقدم تحليلات دقيقة وواضحة للبيانات الصحية."""
 
       model = genai.GenerativeModel(
-          model_name="gemini-1.5-pro",
+          model_name="gemini-1.5-flash-8b",
           generation_config=generation_config,
           system_instruction=system_prompt
       )
