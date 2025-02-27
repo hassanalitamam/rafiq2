@@ -1,4 +1,33 @@
-import streamlit as st
+def predict_heart_disease(age, sex_male, cigs_per_day, tot_chol, sys_bp, glucose):
+    """استدعاء واجهة برمجة التطبيقات للتنبؤ بأمراض القلب باستخدام API المحدد"""
+    try:
+        # تسجيل محاولة الاتصال
+        st.write("جاري الاتصال بنموذج التنبؤ...")
+        
+        # إنشاء عميل Gradio
+        client = gradio_client.Client("hassanalivip28/Heart-Dises_Model")
+        
+        # استخدام Job للتحكم بشكل أفضل في العملية
+        job = client.submit(
+            fn_index=0,  # استخدام الدالة الافتراضية
+            age=float(age),
+            sex_male=str(sex_male),
+            cigs_per_day=float(cigs_per_day),
+            tot_chol=float(tot_chol),
+            sys_bp=float(sys_bp),
+            glucose=float(glucose),
+            api_name="/predict_heart_disease"
+        )
+        
+        # انتظار النتيجة
+        result = job.result()
+        st.success("تم استلام النتيجة من النموذج!")
+        return result
+        
+    except Exception as e:
+        st.error(f"حدث خطأ في الاتصال بنموذج التنبؤ: {e}")
+        st.info("استخدام النموذج المحلي للتنبؤ كبديل...")
+        return predict_heart_disease_local(age, sex_male, cigs_per_day, tot_chol, sysimport streamlit as st
 import requests
 import google.generativeai as genai
 import pandas as pd
