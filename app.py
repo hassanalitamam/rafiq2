@@ -417,8 +417,10 @@ def main():
                 success = patient_storage.save_data(patient_data)
                 if success:
                     st.success("تم حفظ معلومات المريض بنجاح!")
-                    # إعادة تحميل الصفحة لتحديث البيانات في جميع الأقسام
-                    st.experimental_rerun()
+                    # تحديث القسم إلى "مراقبة المؤشرات الحيوية" بعد حفظ البيانات
+                    st.session_state.page = "مراقبة المؤشرات الحيوية"
+                    # استخدام st.rerun بدلاً من st.experimental_rerun
+                    st.rerun()
 
     elif page == "تحليل مخاطر القلب":
         st.header("تحليل مخاطر أمراض القلب")
@@ -588,7 +590,7 @@ def main():
     if 'data_saved' in st.session_state and st.session_state['data_saved']:
         # إظهار إشعار الحفظ مرة واحدة فقط
         st.session_state['data_saved'] = False
-        st.toast("✅ تم حفظ البيانات بنجاح وتحديثها في جميع أقسام التطبيق", icon="✅")
+        st.success("✅ تم حفظ البيانات بنجاح وتحديثها في جميع أقسام التطبيق")
 
 # تغيير نمط الواجهة
 st.markdown("""
