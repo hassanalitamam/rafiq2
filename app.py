@@ -8,6 +8,7 @@ import json
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_lottie import st_lottie
 from fpdf import FPDF
+import gradio_client
 
 # إعدادات الأمان والتكوين
 st.set_page_config(
@@ -241,57 +242,60 @@ def generate_pdf_report(patient_data, analysis_text):
     return pdf_file
 
 def predict_heart_disease(age, sex_male, cigs_per_day, tot_chol, sys_bp, glucose):
-    """استدعاء واجهة برمجة التطبيقات للتنبؤ بأمراض القلب"""
+    """استدعاء واجهة برمجة التطبيقات للتنبؤ بأمراض القلب باستخدام gradio_client"""
     try:
-        # محاكاة استدعاء API - يمكن استبدال هذا بالاستدعاء الفعلي للـ API
-        # في بيئة حقيقية، يمكنك استخدام gradio_client كما في النموذج المقدم
+        # تسجيل الوقت قبل الاستدعاء
+        st.write("جاري الاتصال بنموذج التنبؤ...")
         
-        # مثال على التقييم المنطقي البسيط
-        risk_factors = 0
+        # استدعاء gradio API
+        client = gradio_client.Client("hassanalivip28/Heart-Dises_Model")
+        result = client.predict(
+            age=float(age),
+            sex_male=str(sex_male),
+            cigs_per_day=float(cigs_per_day),
+            tot_chol=float(tot_chol),
+            sys_bp=float(sys_bp),
+            glucose=float(glucose),
+            api_name="/predict_heart_disease"
+        )
         
-        if age > 60:
-            risk_factors += 1
-        
-        if sex_male == "1":  # ذكر
-            risk_factors += 1
-            
-        if cigs_per_day > 0:
-            risk_factors += 1
-            
-        if tot_chol > 240:
-            risk_factors += 1
-            
-        if sys_bp > 140:
-            risk_factors += 1
-            
-        if glucose > 110:
-            risk_factors += 1
-            
-        # تحديد النتيجة بناءً على عوامل الخطر
-        if risk_factors <= 1:
-            return "مخاطر منخفضة لأمراض القلب (أقل من 10%)"
-        elif risk_factors <= 3:
-            return "مخاطر متوسطة لأمراض القلب (10-20%)"
-        else:
-            return "مخاطر عالية لأمراض القلب (أكثر من 20%)"
-            
-        # في بيئة الإنتاج، استخدم الكود التالي بدلاً من ذلك:
-        # from gradio_client import Client
-        # client = Client("hassanalivip28/Heart-Dises_Model")
-        # result = client.predict(
-        #     age=age,
-        #     sex_male=sex_male,
-        #     cigs_per_day=cigs_per_day,
-        #     tot_chol=tot_chol,
-        #     sys_bp=sys_bp,
-        #     glucose=glucose,
-        #     api_name="/predict_heart_disease"
-        # )
-        # return result
-        
+        st.write("تم استلام النتيجة من النموذج!")
+        return result
     except Exception as e:
-        st.error(f"خطأ في التنبؤ بأمراض القلب: {e}")
-        return "حدث خطأ أثناء التنبؤ بأمراض القلب"
+        st.error(f"حدث خطأ في الاتصال بنموذج التنبؤ: {e}")
+        # في حالة فشل الاتصال، نستخدم المحاكاة كنظام احتياطي
+        return predict_heart_disease_fallback(age, sex_male, cigs_per_day, tot_chol, sys_bp, glucose)
+
+def predict_heart_disease_fallback(age, sex_male, cigs_per_day, tot_chol, sys_bp, glucose):
+    """نموذج احتياطي محلي للتنبؤ بأمراض القلب في حالة فشل الاتصال بالواجهة"""
+    # مثال على التقييم المنطقي البسيط
+    risk_factors = 0
+    
+    if age > 60:
+        risk_factors += 1
+    
+    if sex_male == "1":  # ذكر
+        risk_factors += 1
+        
+    if cigs_per_day > 0:
+        risk_factors += 1
+        
+    if tot_chol > 240:
+        risk_factors += 1
+        
+    if sys_bp > 140:
+        risk_factors += 1
+        
+    if glucose > 110:
+        risk_factors += 1
+        
+    # تحديد النتيجة بناءً على عوامل الخطر
+    if risk_factors <= 1:
+        return "مخاطر منخفضة لأمراض القلب (أقل من 10%)"
+    elif risk_factors <= 3:
+        return "مخاطر متوسطة لأمراض القلب (10-20%)"
+    else:
+        return "مخاطر عالية لأمراض القلب (أكثر من 20%)"
 
 def main():
     # إعداد حالة الجلسة للتأكد من تتبع العناصر المختلفة
@@ -408,7 +412,16 @@ def main():
             
             patient_data["medical_history"] = st.text_area("التاريخ الطبي", value=patient_data.get("medical_history", ""), height=150)
             
-            st.markdown('</div>', unsafe_allow_html=True)
+            
+        # عرض النتيجة السابقة إذا كانت موجودة
+        if patient_data.get("heart_disease_prediction"):
+            st.markdown(f"""
+            <div class="heart-prediction">
+            <h3>نتيجة التحليل السابق:</h3>
+            <p>{patient_data["heart_disease_prediction"]}</p>
+            <p><small>* لإجراء تحليل جديد، قم بتعديل القيم واضغط على زر "تحليل مخاطر القلب"</small></p>
+            </div>
+            """, unsafe_allow_html=True)
             
             submitted = st.form_submit_button("حفظ المعلومات")
             
@@ -440,7 +453,20 @@ def main():
             sys_bp = st.slider("ضغط الدم الانقباضي (mmHg)", min_value=90, max_value=200, value=patient_data["sys_bp"])
             glucose = st.slider("مستوى السكر في الدم (mg/dL)", min_value=70, max_value=250, value=patient_data["glucose"])
         
-        st.markdown('</div>', unsafe_allow_html=True)
+                        
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+                # حفظ البيانات الحالية للمريض
+                updated_patient = {
+                    **patient_data,
+                    "age": age,
+                    "sex": sex_male,
+                    "cigs_per_day": cigs_per_day,
+                    "tot_chol": tot_chol, 
+                    "sys_bp": sys_bp,
+                    "glucose": glucose
+                }
+                patient_storage.save_data(updated_patient)
         
         if st.button("تحليل مخاطر القلب"):
             with st.spinner("جاري تحليل المخاطر..."):
