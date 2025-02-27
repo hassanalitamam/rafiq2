@@ -123,7 +123,7 @@ def configure_gemini_model(api_key):
 - ما هي الأمراض المحتملة إذا استمرت الحالة كما هي الآن أم لن يحدث أي مشاكل لأن الحالة مستقرة ولن يحدث أي مشكلة
 
 حافظ على نبرة متعاطفة ودقيقة. تحدث بطريقة يمكن للطبيب فهمها وتطبيقها بسهولة في اتخاذ قراراته."""
-
+        
         model = genai.GenerativeModel(
             model_name="gemini-2.0-flash",
             generation_config=generation_config,
@@ -413,21 +413,10 @@ def main():
             
             patient_data["medical_history"] = st.text_area("التاريخ الطبي", value=patient_data.get("medical_history", ""), height=150)
             
-            
-        # عرض النتيجة السابقة إذا كانت موجودة
-        if patient_data.get("heart_disease_prediction"):
-            st.markdown(f"""
-            <div class="heart-prediction">
-            <h3>نتيجة التحليل السابق:</h3>
-            <p>{patient_data["heart_disease_prediction"]}</p>
-            <p><small>* لإجراء تحليل جديد، قم بتعديل القيم واضغط على زر "تحليل مخاطر القلب"</small></p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        st.markdown('</div>', unsafe_allow_html=True)
-            
+            st.markdown('</div>', unsafe_allow_html=True)
+        
             submitted = st.form_submit_button("حفظ المعلومات")
-            
+        
             if submitted:
                 # حفظ البيانات باستخدام كائن التخزين المحسن
                 success = patient_storage.save_data(patient_data)
@@ -456,19 +445,19 @@ def main():
             sys_bp = st.slider("ضغط الدم الانقباضي (mmHg)", min_value=90, max_value=200, value=patient_data["sys_bp"])
             glucose = st.slider("مستوى السكر في الدم (mg/dL)", min_value=70, max_value=250, value=patient_data["glucose"])
         
-                        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
                 
-                # حفظ البيانات الحالية للمريض
-                updated_patient = {
-                    **patient_data,
-                    "age": age,
-                    "sex": sex_male,
-                    "cigs_per_day": cigs_per_day,
-                    "tot_chol": tot_chol, 
-                    "sys_bp": sys_bp,
-                    "glucose": glucose
-                }
-                patient_storage.save_data(updated_patient)
+        # حفظ البيانات الحالية للمريض
+        updated_patient = {
+            **patient_data,
+            "age": age,
+            "sex": sex_male,
+            "cigs_per_day": cigs_per_day,
+            "tot_chol": tot_chol, 
+            "sys_bp": sys_bp,
+            "glucose": glucose
+        }
+        patient_storage.save_data(updated_patient)
         
         if st.button("تحليل مخاطر القلب"):
             with st.spinner("جاري تحليل المخاطر..."):
