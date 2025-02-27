@@ -257,15 +257,15 @@ def predict_heart_disease(age, sex_male, cigs_per_day, tot_chol, sys_bp, glucose
         # تسجيل الوقت قبل الاستدعاء
         st.write("جاري الاتصال بنموذج التنبؤ...")
         
-        # استدعاء gradio API
+        # استدعاء gradio API - مرر المعلمات كوسائط تموضعية وليس كمعلمات مسماة
         client = gradio_client.Client("hassanalivip28/Heart-Dises_Model")
         result = client.predict(
-            age=float(age),
-            sex_male=str(sex_male),
-            cigs_per_day=float(cigs_per_day),
-            tot_chol=float(tot_chol),
-            sys_bp=float(sys_bp),
-            glucose=float(glucose),
+            float(age),           # الوسيط 1: العمر
+            str(sex_male),        # الوسيط 2: الجنس
+            float(cigs_per_day),  # الوسيط 3: عدد السجائر
+            float(tot_chol),      # الوسيط 4: الكوليسترول
+            float(sys_bp),        # الوسيط 5: ضغط الدم
+            float(glucose),       # الوسيط 6: الجلوكوز
             api_name="/predict_heart_disease"
         )
         
