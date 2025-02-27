@@ -123,7 +123,7 @@ def configure_gemini_model(api_key):
 - ما هي الأمراض المحتملة إذا استمرت الحالة كما هي الآن أم لن يحدث أي مشاكل لأن الحالة مستقرة ولن يحدث أي مشكلة
 
 حافظ على نبرة متعاطفة ودقيقة. تحدث بطريقة يمكن للطبيب فهمها وتطبيقها بسهولة في اتخاذ قراراته."""
-        
+
         model = genai.GenerativeModel(
             model_name="gemini-2.0-flash",
             generation_config=generation_config,
@@ -390,6 +390,12 @@ def main():
     # تحميل بيانات المريض
     patient_data = patient_storage.load_data()
 
+    # إضافة إشعار عن حالة البيانات
+    if 'data_saved' in st.session_state and st.session_state['data_saved']:
+        # إظهار إشعار الحفظ مرة واحدة فقط
+        st.session_state['data_saved'] = False
+        st.success("✅ تم حفظ البيانات بنجاح وتحديثها في جميع أقسام التطبيق")
+
     # عرض الصفحة المناسبة
     if page == "بيانات المريض":
         st.header("معلومات المريض")
@@ -414,9 +420,9 @@ def main():
             patient_data["medical_history"] = st.text_area("التاريخ الطبي", value=patient_data.get("medical_history", ""), height=150)
             
             st.markdown('</div>', unsafe_allow_html=True)
-        
+            
             submitted = st.form_submit_button("حفظ المعلومات")
-        
+            
             if submitted:
                 # حفظ البيانات باستخدام كائن التخزين المحسن
                 success = patient_storage.save_data(patient_data)
@@ -445,8 +451,18 @@ def main():
             sys_bp = st.slider("ضغط الدم الانقباضي (mmHg)", min_value=90, max_value=200, value=patient_data["sys_bp"])
             glucose = st.slider("مستوى السكر في الدم (mg/dL)", min_value=70, max_value=250, value=patient_data["glucose"])
         
+        # عرض النتيجة السابقة إذا كانت موجودة
+        if patient_data.get("heart_disease_prediction"):
+            st.markdown(f"""
+            <div class="heart-prediction">
+            <h3>نتيجة التحليل السابق:</h3>
+            <p>{patient_data["heart_disease_prediction"]}</p>
+            <p><small>* لإجراء تحليل جديد، قم بتعديل القيم واضغط على زر "تحليل مخاطر القلب"</small></p>
+            </div>
+            """, unsafe_allow_html=True)
+            
         st.markdown('</div>', unsafe_allow_html=True)
-                
+        
         # حفظ البيانات الحالية للمريض
         updated_patient = {
             **patient_data,
@@ -458,49 +474,23 @@ def main():
             "glucose": glucose
         }
         patient_storage.save_data(updated_patient)
-        
+                
         if st.button("تحليل مخاطر القلب"):
             with st.spinner("جاري تحليل المخاطر..."):
-                prediction = predict_heart_disease(age, sex_male, cigs_per_day, tot_chol, sys_bp, glucose)
+                # استدعاء واجهة API للتنبؤ باستخدام القيم الحالية من واجهة المستخدم
+                prediction_result = predict_heart_disease(age, sex_male, cigs_per_day, tot_chol, sys_bp, glucose)
                 
                 # تحديث بيانات المريض بنتيجة التحليل
-                patient_data["heart_disease_prediction"] = prediction
+                patient_data["heart_disease_prediction"] = prediction_result
                 patient_storage.save_data(patient_data)
                 
+                # عرض النتيجة
                 st.markdown(f"""
                 <div class="heart-prediction">
                 <h3>نتيجة التحليل:</h3>
-                <p>{prediction}</p>
+                <p>{prediction_result}</p>
                 </div>
                 """, unsafe_allow_html=True)
-                
-                # عرض توصيات بناءً على النتيجة
-                st.subheader("التوصيات الطبية:")
-                
-                if "عالية" in prediction:
-                    st.warning("""
-                    - ينصح بمراجعة طبيب القلب في أقرب وقت ممكن
-                    - متابعة مستويات ضغط الدم والكولسترول بانتظام
-                    - الإقلاع عن التدخين فورًا
-                    - اتباع نظام غذائي قليل الدسم والصوديوم
-                    - ممارسة الرياضة المعتدلة بانتظام بعد استشارة الطبيب
-                    """)
-                elif "متوسطة" in prediction:
-                    st.info("""
-                    - يوصى بزيارة طبيب القلب للمتابعة خلال الشهر القادم
-                    - تقليل استهلاك الملح والدهون المشبعة
-                    - زيادة النشاط البدني تدريجياً
-                    - الإقلاع عن التدخين
-                    - مراقبة مستويات الكولسترول وضغط الدم
-                    """)
-                else:
-                    st.success("""
-                    - الحفاظ على نمط حياة صحي
-                    - متابعة الفحص الدوري سنوياً
-                    - المحافظة على ممارسة الرياضة بانتظام
-                    - تناول غذاء متوازن
-                    - تجنب التدخين
-                    """)
 
     elif page == "مراقبة المؤشرات الحيوية":
         if refresh_data or 'thingspeak_data' not in st.session_state:
@@ -602,12 +592,6 @@ def main():
 
         else:
             st.warning("الرجاء الضغط على زر تحديث البيانات 🔄")
-
-    # إضافة إشعار عن حالة البيانات
-    if 'data_saved' in st.session_state and st.session_state['data_saved']:
-        # إظهار إشعار الحفظ مرة واحدة فقط
-        st.session_state['data_saved'] = False
-        st.success("✅ تم حفظ البيانات بنجاح وتحديثها في جميع أقسام التطبيق")
 
 # تغيير نمط الواجهة
 st.markdown("""
