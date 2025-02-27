@@ -8,6 +8,7 @@ import json
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_lottie import st_lottie
 from fpdf import FPDF
+# إضافة gradio_client للاتصال بنموذج التنبؤ بأمراض القلب
 import gradio_client
 
 # إعدادات الأمان والتكوين
@@ -423,6 +424,8 @@ def main():
             </div>
             """, unsafe_allow_html=True)
             
+        st.markdown('</div>', unsafe_allow_html=True)
+            
             submitted = st.form_submit_button("حفظ المعلومات")
             
             if submitted:
@@ -453,8 +456,7 @@ def main():
             sys_bp = st.slider("ضغط الدم الانقباضي (mmHg)", min_value=90, max_value=200, value=patient_data["sys_bp"])
             glucose = st.slider("مستوى السكر في الدم (mg/dL)", min_value=70, max_value=250, value=patient_data["glucose"])
         
-                        
-                st.markdown('</div>', unsafe_allow_html=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
                 
                 # حفظ البيانات الحالية للمريض
                 updated_patient = {
