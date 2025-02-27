@@ -1,9 +1,12 @@
-streamlit
-requests
-pandas
-plotly
-fpdf
-google-generativeai
-import gradio_client
-streamlit-extras
-streamlit-lottie
+streamlit==1.32.0
+requests==2.31.0
+google-generativeai==0.3.2
+pandas==2.1.3
+plotly==5.18.0
+streamlit-extras==0.3.6
+streamlit-lottie==0.0.5
+fpdf==1.7.2
+gradio-client==0.5.2
+python-dotenv==1.0.0
+protobuf==4.25.1
+proto-plus==1.22.3
