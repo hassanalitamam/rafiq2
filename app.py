@@ -1,33 +1,4 @@
-def predict_heart_disease(age, sex_male, cigs_per_day, tot_chol, sys_bp, glucose):
-    """استدعاء واجهة برمجة التطبيقات للتنبؤ بأمراض القلب باستخدام API المحدد"""
-    try:
-        # تسجيل محاولة الاتصال
-        st.write("جاري الاتصال بنموذج التنبؤ...")
-        
-        # إنشاء عميل Gradio
-        client = gradio_client.Client("hassanalivip28/Heart-Dises_Model")
-        
-        # استخدام Job للتحكم بشكل أفضل في العملية
-        job = client.submit(
-            fn_index=0,  # استخدام الدالة الافتراضية
-            age=float(age),
-            sex_male=str(sex_male),
-            cigs_per_day=float(cigs_per_day),
-            tot_chol=float(tot_chol),
-            sys_bp=float(sys_bp),
-            glucose=float(glucose),
-            api_name="/predict_heart_disease"
-        )
-        
-        # انتظار النتيجة
-        result = job.result()
-        st.success("تم استلام النتيجة من النموذج!")
-        return result
-        
-    except Exception as e:
-        st.error(f"حدث خطأ في الاتصال بنموذج التنبؤ: {e}")
-        st.info("استخدام النموذج المحلي للتنبؤ كبديل...")
-        return predict_heart_disease_local(age, sex_male, cigs_per_day, tot_chol, sysimport streamlit as st
+import streamlit as st
 import requests
 import google.generativeai as genai
 import pandas as pd
@@ -281,20 +252,40 @@ def generate_pdf_report(patient_data, analysis_text):
     return pdf_file
 
 def predict_heart_disease(age, sex_male, cigs_per_day, tot_chol, sys_bp, glucose):
-    """استدعاء واجهة برمجة التطبيقات للتنبؤ بأمراض القلب مع معالجة خطأ 403"""
+    """استدعاء واجهة برمجة التطبيقات للتنبؤ بأمراض القلب باستخدام صيغة API المطلوبة"""
     try:
         # تسجيل محاولة الاتصال
         st.write("جاري الاتصال بنموذج التنبؤ...")
         
-        # نظراً لوجود مشكلة في الاتصال بالنموذج (HTTP 403)، نستخدم محاكاة محلية أكثر تفصيلاً
-        # في بيئة حقيقية، يمكن استخدام توكن HF للوصول في حالة كان النموذج خاصاً:
-        # client = gradio_client.Client("hassanalivip28/Heart-Dises_Model", hf_token="YOUR_HF_TOKEN")
+        # استخدام طريقة الاتصال الأصلية مع المعلمات المسماة
+        import requests
         
-        st.warning("تعذر الاتصال بنموذج التنبؤ عبر الإنترنت. جاري استخدام النموذج المحلي.")
-        return predict_heart_disease_local(age, sex_male, cigs_per_day, tot_chol, sys_bp, glucose)
-        
+        # محاولة استخدام gradio_client مرة أخرى بشكل مختلف
+        try:
+            client = gradio_client.Client("hassanalivip28/Heart-Dises_Model")
+            
+            # إرسال البيانات كمعاملات تموضعية
+            result = client.predict(
+                float(age),           # الوسيط 1
+                str(sex_male),        # الوسيط 2
+                float(cigs_per_day),  # الوسيط 3
+                float(tot_chol),      # الوسيط 4
+                float(sys_bp),        # الوسيط 5
+                float(glucose),       # الوسيط 6
+                api_name="/predict_heart_disease"
+            )
+            
+            st.success("تم استلام النتيجة من النموذج!")
+            return result
+            
+        except Exception as gradio_error:
+            st.warning(f"فشل الاتصال بواجهة Gradio: {gradio_error}")
+            st.info("استخدام النموذج المحلي للتنبؤ...")
+            return predict_heart_disease_local(age, sex_male, cigs_per_day, tot_chol, sys_bp, glucose)
+            
     except Exception as e:
         st.error(f"حدث خطأ في الاتصال بنموذج التنبؤ: {e}")
+        st.info("استخدام النموذج المحلي للتنبؤ كبديل...")
         return predict_heart_disease_local(age, sex_male, cigs_per_day, tot_chol, sys_bp, glucose)
 
 def predict_heart_disease_local(age, sex_male, cigs_per_day, tot_chol, sys_bp, glucose):
