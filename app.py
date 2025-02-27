@@ -22,29 +22,34 @@ THINGSPEAK_CHANNEL_ID = 2743941
 THINGSPEAK_API_KEY = "2BBOKAZ1XELK87Q9"
 GEMINI_API_KEY = "AIzaSyCAMslvAW1xKMIDL2jAgbJVT1UipR8ip2s"
 
-# تعريف كلاس للتعامل مع LocalStorage
-class LocalStorage:
+# تعريف كلاس للتعامل مع تخزين البيانات باستخدام session_state بشكل أكثر موثوقية
+class PatientDataStorage:
     def __init__(self):
+        # مفتاح البيانات في session_state
         self.storage_key = "patient_data"
+        # التأكد من وجود البيانات في session_state عند التهيئة
+        if self.storage_key not in st.session_state:
+            st.session_state[self.storage_key] = self.get_default_data()
     
     def save_data(self, data):
-        """حفظ البيانات في LocalStorage باستخدام SessionState"""
+        """حفظ البيانات في session_state"""
+        # تحديث البيانات في session_state
         st.session_state[self.storage_key] = data
-        # تخزين البيانات أيضًا باستخدام JavaScript
-        js_code = f"""
-        <script>
-            localStorage.setItem('{self.storage_key}', JSON.stringify({json.dumps(data)}));
-        </script>
-        """
-        st.markdown(js_code, unsafe_allow_html=True)
+        # إضافة تأكيد للحفظ
+        st.session_state['data_saved'] = True
+        return True
     
     def load_data(self):
-        """تحميل البيانات من LocalStorage"""
-        # محاولة تحميل البيانات من SessionState أولاً
+        """تحميل البيانات من session_state"""
+        # الحصول على البيانات من session_state إذا كانت موجودة
         if self.storage_key in st.session_state:
             return st.session_state[self.storage_key]
         
         # إذا لم تكن البيانات موجودة، إرجاع بيانات افتراضية
+        return self.get_default_data()
+    
+    def get_default_data(self):
+        """إرجاع بيانات افتراضية للمريض الجديد"""
         return {
             "name": "",
             "age": 50,
@@ -58,8 +63,8 @@ class LocalStorage:
             "heart_disease_prediction": None
         }
 
-# تهيئة كائن LocalStorage
-local_storage = LocalStorage()
+# تهيئة كائن تخزين بيانات المريض
+patient_storage = PatientDataStorage()
 
 # دالة جلب رسوم Lottie
 def load_lottie_url(url: str):
@@ -289,6 +294,10 @@ def predict_heart_disease(age, sex_male, cigs_per_day, tot_chol, sys_bp, glucose
         return "حدث خطأ أثناء التنبؤ بأمراض القلب"
 
 def main():
+    # إعداد حالة الجلسة للتأكد من تتبع العناصر المختلفة
+    if 'page' not in st.session_state:
+        st.session_state['page'] = "بيانات المريض"
+        
     # تحميل رسوم Lottie الطبية
     medical_lottie = load_lottie_url(
         "https://lottie.host/4e8b1815-8b64-4852-9199-987ac70c3392/5GBmHUXcpJ.json"
@@ -353,8 +362,13 @@ def main():
         # أزرار التنقل
         page = st.radio(
             "القسم",
-            ["بيانات المريض", "مراقبة المؤشرات الحيوية", "تحليل مخاطر القلب"]
+            ["بيانات المريض", "مراقبة المؤشرات الحيوية", "تحليل مخاطر القلب"],
+            index=0 if "page" not in st.session_state else 
+                  ["بيانات المريض", "مراقبة المؤشرات الحيوية", "تحليل مخاطر القلب"].index(st.session_state.page)
         )
+        
+        # تحديث الصفحة الحالية في session_state
+        st.session_state.page = page
         
         st.markdown("---")
         
@@ -369,7 +383,7 @@ def main():
             generate_report = False
 
     # تحميل بيانات المريض
-    patient_data = local_storage.load_data()
+    patient_data = patient_storage.load_data()
 
     # عرض الصفحة المناسبة
     if page == "بيانات المريض":
@@ -399,8 +413,12 @@ def main():
             submitted = st.form_submit_button("حفظ المعلومات")
             
             if submitted:
-                local_storage.save_data(patient_data)
-                st.success("تم حفظ معلومات المريض بنجاح!")
+                # حفظ البيانات باستخدام كائن التخزين المحسن
+                success = patient_storage.save_data(patient_data)
+                if success:
+                    st.success("تم حفظ معلومات المريض بنجاح!")
+                    # إعادة تحميل الصفحة لتحديث البيانات في جميع الأقسام
+                    st.experimental_rerun()
 
     elif page == "تحليل مخاطر القلب":
         st.header("تحليل مخاطر أمراض القلب")
@@ -428,7 +446,7 @@ def main():
                 
                 # تحديث بيانات المريض بنتيجة التحليل
                 patient_data["heart_disease_prediction"] = prediction
-                local_storage.save_data(patient_data)
+                patient_storage.save_data(patient_data)
                 
                 st.markdown(f"""
                 <div class="heart-prediction">
@@ -566,19 +584,11 @@ def main():
         else:
             st.warning("الرجاء الضغط على زر تحديث البيانات 🔄")
 
-    # إضافة التعليمات البرمجية للتعامل مع LocalStorage
-    st.markdown("""
-    <script>
-        // استرجاع بيانات المريض من LocalStorage عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', function() {
-            const storedData = localStorage.getItem('patient_data');
-            if (storedData) {
-                // إرسال البيانات إلى Streamlit (تحتاج إلى تنفيذ معالج خاص بذلك)
-                console.log('تم استرجاع بيانات المريض من LocalStorage');
-            }
-        });
-    </script>
-    """, unsafe_allow_html=True)
+    # إضافة إشعار عن حالة البيانات
+    if 'data_saved' in st.session_state and st.session_state['data_saved']:
+        # إظهار إشعار الحفظ مرة واحدة فقط
+        st.session_state['data_saved'] = False
+        st.toast("✅ تم حفظ البيانات بنجاح وتحديثها في جميع أقسام التطبيق", icon="✅")
 
 # تغيير نمط الواجهة
 st.markdown("""
